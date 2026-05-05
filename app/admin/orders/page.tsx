@@ -2,11 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function AdminOrdersPage() {
-  const supabase = createClient()
+  const supabase = await createClient() // ✅ FIXED
 
   // Auth check
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/login")
+  if (!user) {
+    redirect("/login")
+  }
 
   // Admin role check
   const { data: profile } = await supabase
@@ -14,7 +16,10 @@ export default async function AdminOrdersPage() {
     .select("role")
     .eq("id", user.id)
     .single()
-  if (profile?.role !== "admin") redirect("/")
+
+  if (profile?.role !== "admin") {
+    redirect("/")
+  }
 
   // Fetch orders
   const { data: orders, error } = await supabase
@@ -40,28 +45,39 @@ export default async function AdminOrdersPage() {
           Dashboard
         </a>
       </div>
+
       <div className="space-y-4">
         {!orders || orders.length === 0 ? (
           <p className="text-center text-sm text-foreground/40 py-12">No orders yet</p>
         ) : (
           orders.map((order: any) => (
             <div key={order.id} className="border border-border rounded-lg p-5 space-y-3">
+              
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-mono text-foreground/40">#{order.id.slice(0, 8).toUpperCase()}</p>
-                  <p className="text-sm font-medium mt-1">{order.profiles?.name ?? "Unknown"}</p>
-                  <p className="text-xs text-foreground/50">{order.profiles?.email}</p>
+                  <p className="text-xs font-mono text-foreground/40">
+                    #{order.id.slice(0, 8).toUpperCase()}
+                  </p>
+                  <p className="text-sm font-medium mt-1">
+                    {order.profiles?.name ?? "Unknown"}
+                  </p>
+                  <p className="text-xs text-foreground/50">
+                    {order.profiles?.email}
+                  </p>
                 </div>
+
                 <div className="text-right">
                   <p className="text-lg font-light">Rs.{order.total ?? 0}</p>
                   <p className="text-xs text-foreground/50">COD</p>
                 </div>
               </div>
+
               {order.addresses && (
                 <div className="text-xs text-foreground/60 bg-card border border-border rounded px-3 py-2">
                   {order.addresses.line1}, {order.addresses.city}, {order.addresses.state} {order.addresses.pincode} - {order.addresses.phone}
                 </div>
               )}
+
               <div className="text-xs text-foreground/60 space-y-1">
                 {order.order_items?.map((item: any) => (
                   <p key={item.id}>
@@ -69,19 +85,21 @@ export default async function AdminOrdersPage() {
                   </p>
                 ))}
               </div>
+
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <p className="text-xs text-foreground/40">
-                  {new Date(order.created_at).toLocaleDateString("en-IN", { 
-                    day: "numeric", 
-                    month: "short", 
-                    year: "numeric" 
+                  {new Date(order.created_at).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric"
                   })}
                 </p>
-                {/* Replace with your OrderStatusUpdater client component */}
+
                 <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
                   {order.status ?? 'pending'}
                 </span>
               </div>
+
             </div>
           ))
         )}
