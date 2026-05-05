@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin"
+import { adminclient } from "@/lib/supabase/admin"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const supabase = createAdminClient()
+    const supabase = adminclient()
 
     const { error } = await supabase
       .from("newsletter_subscribers")

@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin"
+import { adminclient} from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 })
   }
 
-  const adminDb = createAdminClient()
+  const adminDb = adminclient()
   const { data: profile } = await adminDb
     .from("profiles")
     .select("name, email, phone, role")
