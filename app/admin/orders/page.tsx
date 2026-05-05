@@ -1,12 +1,14 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function AdminOrdersPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
+
+  // Auth check
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
+  // Admin role check
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
@@ -14,10 +16,21 @@ export default async function AdminOrdersPage() {
     .single()
   if (profile?.role !== "admin") redirect("/")
 
-  const { data: orders } = await supabase
+  // Fetch orders
+  const { data: orders, error } = await supabase
     .from("orders")
-    .select("*, profiles (name, email), addresses (name, phone, line1, city, state, pincode), order_items (id, product_name, quantity, price)")
+    .select(`
+      *,
+      profiles (name, email),
+      addresses (name, phone, line1, city, state, pincode),
+      order_items (id, product_name, quantity, price)
+    `)
     .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Orders fetch error:", error)
+    return <div>Error loading orders</div>
+  }
 
   return (
     <div className="min-h-screen pt-24 px-4 max-w-6xl mx-auto pb-12">
@@ -40,7 +53,7 @@ export default async function AdminOrdersPage() {
                   <p className="text-xs text-foreground/50">{order.profiles?.email}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-light">Rs.{order.total}</p>
+                  <p className="text-lg font-light">Rs.{order.total ?? 0}</p>
                   <p className="text-xs text-foreground/50">COD</p>
                 </div>
               </div>
@@ -51,14 +64,23 @@ export default async function AdminOrdersPage() {
               )}
               <div className="text-xs text-foreground/60 space-y-1">
                 {order.order_items?.map((item: any) => (
-                  <p key={item.id}>{item.product_name} x {item.quantity} - Rs.{item.price * item.quantity}</p>
+                  <p key={item.id}>
+                    {item.product_name} x {item.quantity} - Rs.{item.price * item.quantity}
+                  </p>
                 ))}
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
                 <p className="text-xs text-foreground/40">
-                  {new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  {new Date(order.created_at).toLocaleDateString("en-IN", { 
+                    day: "numeric", 
+                    month: "short", 
+                    year: "numeric" 
+                  })}
                 </p>
-                <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
+                {/* Replace with your OrderStatusUpdater client component */}
+                <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                  {order.status ?? 'pending'}
+                </span>
               </div>
             </div>
           ))
