@@ -18,7 +18,7 @@ export default async function AdminOrdersPage() {
 
   const { data: orders } = await adminDb
     .from("orders")
-    .select(`*, profiles (name, email), addresses (name, phone, line1, city, state, pincode), order_items (*, products (name))`)
+    .select("*, profiles (name, email), addresses (name, phone, line1, city, state, pincode), order_items (*, products (name))")
     .order("created_at", { ascending: false })
 
   return (
@@ -26,7 +26,7 @@ export default async function AdminOrdersPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-light tracking-widest uppercase">Orders</h1>
         <a href="/admin" className="text-xs text-foreground/50 hover:text-primary transition uppercase tracking-widest">
-          ← Dashboard
+          Dashboard
         </a>
       </div>
       <div className="space-y-4">
@@ -42,18 +42,18 @@ export default async function AdminOrdersPage() {
                   <p className="text-xs text-foreground/50">{order.profiles?.email}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-light">₹{order.total}</p>
+                  <p className="text-lg font-light">Rs.{order.total}</p>
                   <p className="text-xs text-foreground/50">COD</p>
                 </div>
               </div>
               {order.addresses && (
                 <div className="text-xs text-foreground/60 bg-card border border-border rounded px-3 py-2">
-                  📍 {order.addresses.line1}, {order.addresses.city}, {order.addresses.state} — {order.addresses.pincode} · 📞 {order.addresses.phone}
+                  {order.addresses.line1}, {order.addresses.city}, {order.addresses.state} {order.addresses.pincode} - {order.addresses.phone}
                 </div>
               )}
               <div className="text-xs text-foreground/60 space-y-1">
                 {order.order_items?.map((item: any) => (
-                  <p key={item.id}>{item.product_name} × {item.quantity} — ₹{item.price * item.quantity}</p>
+                  <p key={item.id}>{item.product_name} x {item.quantity} - Rs.{item.price * item.quantity}</p>
                 ))}
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border">
