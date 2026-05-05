@@ -1,6 +1,9 @@
-import { adminclient} from "@/lib/supabase/admin"
+import { adminclient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
+// This is the fix: forces Next.js to run this route dynamically
+export const dynamic = "force-dynamic"
 
 export async function GET() {
   const supabase = await createClient()
