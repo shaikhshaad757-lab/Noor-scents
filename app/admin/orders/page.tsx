@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { redirect } from "next/navigation"
 import { OrderStatusUpdater } from "@/components/admin/order-status-updater"
 
@@ -8,17 +7,16 @@ export default async function AdminOrdersPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const adminDb = createAdminClient()
-  const { data: profile } = await adminDb
+  const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .single()
   if (profile?.role !== "admin") redirect("/")
 
-  const { data: orders } = await adminDb
+  const { data: orders } = await supabase
     .from("orders")
-    .select("*, profiles (name, email), addresses (name, phone, line1, city, state, pincode), order_items (*, products (name))")
+    .select("*, profiles (name, email), addresses (name, phone, line1, city, state, pincode), order_items (id, product_name, quantity, price)")
     .order("created_at", { ascending: false })
 
   return (
@@ -33,7 +31,7 @@ export default async function AdminOrdersPage() {
         {!orders || orders.length === 0 ? (
           <p className="text-center text-sm text-foreground/40 py-12">No orders yet</p>
         ) : (
-          orders.map(order => (
+          orders.map((order: any) => (
             <div key={order.id} className="border border-border rounded-lg p-5 space-y-3">
               <div className="flex items-start justify-between">
                 <div>
